@@ -10,20 +10,12 @@
 #include <unordered_map>
 
 namespace recipelib{
+    constexpr int initial_amount = 0;
 
+    template<ResourceType... T>
     class ResourcePool {
     public:
-        template <ResourceType T>
-        void AddResource(std::string name, uint32_t amount) {
-            if (resources_[T] == nullptr) {
-                resources_[T] = std::make_shared<recipelib::Resource<T>>(name, amount);
-            }
-            else {
-                resources_[T]->SetAmount(amount);
-            }
-        }
-    private:
-        std::unordered_map<recipelib::ResourceType, std::shared_ptr<recipelib::ResourceInterface>> resources_;
+        std::tuple<Resource<T>...> resources_ { std::make_tuple(Resource<T>(initial_amount) ...) };
     };
 }
 

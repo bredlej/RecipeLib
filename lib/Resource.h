@@ -11,36 +11,39 @@ namespace recipelib {
     enum class ResourceType { Wood,
                               Stone };
 
-    class ResourceInterface {
-    public:
-        virtual uint32_t GetAmount() = 0;
-        virtual void SetAmount(uint32_t amount) = 0;
-        virtual std::string GetName() = 0;
-        virtual ResourceType GetType() = 0;
-
-    };
+    std::string to_string(ResourceType t) {
+        switch (t) {
+            case ResourceType::Wood:
+                return "Wood";
+            case ResourceType::Stone:
+                return "Stone";
+            default:
+                return "Unknown";
+        }
+    }
 
     template<ResourceType T>
-    class Resource : public ResourceInterface {
+    class Resource {
     public:
-        explicit Resource(std::string name, uint32_t amount) : name_{std::move(name)}, amount_{amount}, type_{T} {}
-        ~Resource() {std::cout << "Destroying " << GetName() << std::endl;}
-        uint32_t GetAmount() override {
+        explicit Resource(uint32_t amount) : name_{to_string(T)}, amount_{amount}, type_{T} {}
+        ~Resource() = default;
+
+        uint32_t GetAmount() {
             return amount_;
         }
-        void SetAmount(uint32_t amount) override {
+        void SetAmount(uint32_t amount) {
             amount_ = amount;
         }
-        std::string GetName() override {
+        std::string GetName() {
             return name_;
         }
-        ResourceType GetType() override {
+        ResourceType GetType() {
             return type_;
         }
 
     private:
         uint32_t amount_;
-        std::string name_;
+        const std::string name_;
         const ResourceType type_;
     };
 }// namespace recipelib
