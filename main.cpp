@@ -1,19 +1,19 @@
 #include "lib/Resource.h"
 #include "lib/ResourcePool.h"
 #include <iostream>
-#include <vector>
 
 int main() {
-    using recipelib::Resource;
-    using recipelib::ResourceType;
+    auto all_resources = recipelib::ResourcePool<resource::Wood, resource::Stone>();
+    auto wood_resource = recipelib::ResourcePool<resource::Wood>();
 
-    auto only_wood_resources = recipelib::ResourcePool<ResourceType::Wood>();
-    auto all_resources = recipelib::ResourcePool<ResourceType::Wood, ResourceType::Stone>();
+    resource::Resource wood1 = recipelib::get<resource::Wood>(all_resources);
+    auto &wood2 = recipelib::get<resource::Wood>(wood_resource);
 
-    auto &stone1 = std::get<Resource<ResourceType::Wood>>(all_resources.resources_);
+    std::cout << wood1 << std::endl;
+    wood1.amount_ = 3;
+    std::cout << wood1 << std::endl;
+    std::cout << wood2 << std::endl;
 
-    // not possible due to compile time verification of the type
-    // auto &stone2 = std::get<Resource<ResourceType::Stone>>(only_wood_resources.resources_);
-
-    std::cin;
+    resource::Resource stone = recipelib::get<resource::Stone>(all_resources);
+    std::cout << stone;
 }
