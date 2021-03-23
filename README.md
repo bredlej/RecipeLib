@@ -33,7 +33,6 @@ namespace resources {
 
 int main() {
     auto my_stone_resource = recipelib::Resource<resources::Stone>();
-    auto my_wood_resouce = recipelib::Resource<resources::Wood>();
             
     auto stone_ingredient = recipelib::Ingredient<const int, resources::Stone>(1, my_stone_resource);
     auto wood_ingredient = recipelib::Ingredient<const double, resources::Wood>(2.5); // constructor deduces resource type from template
