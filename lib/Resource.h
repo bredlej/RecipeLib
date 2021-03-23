@@ -70,7 +70,7 @@ namespace recipelib {
     public:
         Ingredient() = delete;
         explicit Ingredient(T amount) : value_{Resource<R>(), amount} {std::cout << "Constructor " <<GetResource()  << ": "<<amount <<std::endl;};
-        explicit Ingredient(Resource<R> resource, T amount) : value_{resource, amount} {std::cout << "Constructor " <<resource << ": "<<amount <<std::endl;};
+        explicit Ingredient(T amount, Resource<R> resource) : value_{resource, amount} {std::cout << "Constructor " <<resource << ": "<<amount <<std::endl;};
         ~Ingredient() {std::cout << "Destructor " <<GetResource() << ": "<<GetAmount() <<std::endl;};
         auto &get() { return value_; };
         Resource<R> GetResource() {return value_.first; };
