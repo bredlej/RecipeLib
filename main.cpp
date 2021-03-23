@@ -3,17 +3,20 @@
 #include <iostream>
 
 int main() {
-    auto all_resources = recipelib::ResourcePool<resource::Wood, resource::Stone>();
-    auto wood_resource = recipelib::ResourcePool<resource::Wood>();
+    std::cout << "-- Scope 1 start" <<std::endl;
+    auto stone_ingredient = recipelib::Ingredient<const int, resources::Stone>(1);
+    auto wood_ingredient = recipelib::Ingredient<const double, resources::Wood>(2.5);
 
-    resource::Resource wood1 = recipelib::get<resource::Wood>(all_resources);
-    auto &wood2 = recipelib::get<resource::Wood>(wood_resource);
+    {
+        std::cout << "-- Scope 2 start"<<std::endl;
+        auto recipe = recipelib::Recipe<int, resources::Building>(1, {stone_ingredient, wood_ingredient});
 
-    std::cout << wood1 << std::endl;
-    wood1.amount_ = 3;
-    std::cout << wood1 << std::endl;
-    std::cout << wood2 << std::endl;
+        auto firstBuilding = recipe.yield();
+        std::cout << firstBuilding.GetResource() << ": " << firstBuilding.GetAmount() << std::endl;
 
-    resource::Resource stone = recipelib::get<resource::Stone>(all_resources);
-    std::cout << stone;
+        auto secondBuilding = recipe.yield();
+        std::cout << secondBuilding.GetResource() << ": " << secondBuilding.GetAmount() << std::endl;
+        std::cout << "-- Scope 2 end"<<std::endl;
+    }
+    std::cout << "-- Scope 1 end"<<std::endl;
 }

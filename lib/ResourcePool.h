@@ -12,18 +12,18 @@ namespace recipelib{
     static constexpr int initial_amount = 0;
     struct ResourcePoolBase {};
 
-    template<resource::is_one_or_more_resources... Resources>
+    template<recipelib::is_one_or_more_resources... Resources>
     class ResourcePool : ResourcePoolBase {
     public:
-        std::tuple<resource::Resource<Resources>...> resources_{std::make_tuple(resource::Resource<Resources>(initial_amount)...)};
+        std::tuple<recipelib::Resource<Resources>...> resources_{std::make_tuple(recipelib::Resource<Resources>()...)};
     };
 
     template<typename T>
     concept is_a_resource_pool = std::is_base_of_v<ResourcePoolBase, T>;
 
-    template<resource::is_a_resource T>
+    template<recipelib::is_a_resource T>
     auto &get(is_a_resource_pool auto &pool) {
-        return std::get<resource::Resource<T>>(pool.resources_);
+        return std::get<recipelib::Resource<T>>(pool.resources_);
     }
 }
 
