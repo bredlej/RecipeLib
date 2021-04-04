@@ -22,7 +22,7 @@ namespace recipelib{
     concept is_a_resource_pool = std::is_base_of_v<ResourcePoolBase, T>;
 
     template<recipelib::is_a_resource T>
-    auto &get(is_a_resource_pool auto &pool) {
+    auto &get(ResourcePool<T> &pool) {
         return std::get<recipelib::Resource<T>>(pool.resources_);
     }
 }

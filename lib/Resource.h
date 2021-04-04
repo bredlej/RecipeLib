@@ -4,7 +4,11 @@
 
 #ifndef RECIPELIB_RESOURCE_H
 #define RECIPELIB_RESOURCE_H
+#include <chrono>
 #include <concepts>
+#include <cppcoro/shared_task.hpp>
+#include <cppcoro/static_thread_pool.hpp>
+#include <cppcoro/task.hpp>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -69,12 +73,12 @@ namespace recipelib {
     class Ingredient : public IngredientBase {
     public:
         Ingredient() = delete;
-        explicit Ingredient(T amount) : value_{Resource<R>(), amount} {std::cout << "Constructor " <<GetResource()  << ": "<<amount <<std::endl;};
-        explicit Ingredient(T amount, Resource<R> resource) : value_{resource, amount} {std::cout << "Constructor " <<resource << ": "<<amount <<std::endl;};
-        ~Ingredient() {std::cout << "Destructor " <<GetResource() << ": "<<GetAmount() <<std::endl;};
+        explicit Ingredient(T amount) : value_{Resource<R>(), amount} {};
+        explicit Ingredient(T amount, Resource<R> resource) : value_{resource, amount} {};
+        ~Ingredient(){};
         auto &get() { return value_; };
-        Resource<R> GetResource() {return value_.first; };
-        T GetAmount() { return value_.second;};
+        Resource<R> GetResource() { return value_.first; };
+        T GetAmount() { return value_.second; };
 
     private:
         std::pair<Resource<R>, T> value_;
@@ -95,9 +99,11 @@ namespace recipelib {
      */
     template<is_an_amount T, is_a_resource R>
     class Recipe : RecipeBase<T, R> {
+        using IngredientList = std::vector<std::shared_ptr<recipelib::IngredientBase>>;
+
     public:
-        explicit Recipe(T outputAmount, std::vector<std::shared_ptr<recipelib::IngredientBase>> ingredients) : outputAmount_{outputAmount}, ingredients_(std::move(ingredients)){};
-        Recipe(T outputAmount, std::initializer_list<recipelib::IngredientBase> ingredients) {
+        explicit Recipe(T outputAmount, IngredientList &&ingredients) : outputAmount_{outputAmount}, ingredients_(std::move(ingredients)){};
+        Recipe(T outputAmount, std::initializer_list<recipelib::IngredientBase> &&ingredients) {
             outputAmount_ = outputAmount;
             for (auto &ingredient : ingredients) {
                 ingredients_.push_back(std::make_shared<recipelib::IngredientBase>(ingredient));
@@ -105,11 +111,30 @@ namespace recipelib {
         }
         Resource<R> GetProductType() { return Resource<R>(); };
         T GetOutputAmount() { return outputAmount_; };
-        Ingredient<T,R> yield() { return Ingredient<T, R>(outputAmount_); }
+        Ingredient<T, R> yield() { return Ingredient<T, R>(outputAmount_); }
 
     private:
         T outputAmount_;
-        std::vector<std::shared_ptr<recipelib::IngredientBase>> ingredients_;
+        IngredientList ingredients_;
+    };
+
+    template<is_a_resource R>
+    class ResourceBuilder {
+    public:
+        cppcoro::shared_task<Resource<R>> build(cppcoro::static_thread_pool &tp, uint32_t time_seconds) {
+            co_await tp.schedule();
+            std::cout << "Starting build of " << R::name << " (" << time_seconds << " seconds)" << std::endl;
+            auto start_time = std::chrono::steady_clock::now();
+            int seconds_elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start_time).count();
+            while (seconds_elapsed < time_seconds) {
+                if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start_time).count() != seconds_elapsed) {
+                    seconds_elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start_time).count();
+                    std::cout << R::name << ": [" << seconds_elapsed << "/" << time_seconds << "]" << std::endl;
+                }
+            }
+            std::cout << "  (" << R::name << " finished)" << std::endl;
+            co_return Resource<R>();
+        }
     };
 }// namespace recipelib
 

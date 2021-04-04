@@ -1,1 +1,4 @@
 
+[submodule "extern/cppcoro"]
+	path = extern/cppcoro
+	url = https://github.com/andreasbuhr/cppcoro.git

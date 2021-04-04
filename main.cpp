@@ -1,24 +1,19 @@
 #include "lib/Resource.h"
-#include "lib/ResourcePool.h"
+#include <cppcoro/schedule_on.hpp>
+#include <cppcoro/static_thread_pool.hpp>
+#include <cppcoro/sync_wait.hpp>
+#include <cppcoro/when_all.hpp>
 #include <iostream>
 
 int main() {
-    std::cout << "-- Scope 1 start" << std::endl;
-    auto stone_ingredient = recipelib::Ingredient<const int, resources::Stone>(1);
-    auto wood_ingredient = recipelib::Ingredient<const double, resources::Wood>(2.5);
+    using namespace recipelib;
 
-    {
-        std::cout << "-- Scope 2 start" << std::endl;
-        auto recipe = recipelib::Recipe<int, resources::Building>(1,
-                                                                  {recipelib::Ingredient<const int, resources::Stone>(1),
-                                                                   recipelib::Ingredient<const double, resources::Wood>(2.5)});
+    auto builder_thread = cppcoro::static_thread_pool(2);
+    auto wood_builder_task = ResourceBuilder<resources::Wood>().build(builder_thread, 3);
+    auto stone_builder_task = ResourceBuilder<resources::Stone>().build(builder_thread, 2);
 
-        auto firstBuilding = recipe.yield();
-        std::cout << firstBuilding.GetResource() << ": " << firstBuilding.GetAmount() << std::endl;
+    cppcoro::sync_wait(when_all(cppcoro::schedule_on(builder_thread, wood_builder_task),
+                                cppcoro::schedule_on(builder_thread, stone_builder_task)));
 
-        auto secondBuilding = recipe.yield();
-        std::cout << secondBuilding.GetResource() << ": " << secondBuilding.GetAmount() << std::endl;
-        std::cout << "-- Scope 2 end" << std::endl;
-    }
-    std::cout << "-- Scope 1 end" << std::endl;
+    std::cout << "Done building wood and stone." << std::endl;
 }
